@@ -1,0 +1,12 @@
+[
+  { "name": "Sushi House", "cuisine": "Japanese", "priceLevel": "$$", "imageUrl": "https://example.com/images/sushihouse.jpg", "rating": 4.8, "location": "Downtown" },
+  { "name": "Pizza Palace", "cuisine": "Italian", "priceLevel": "$", "imageUrl": "https://example.com/images/pizzapalace.jpg", "rating": 4.6, "location": "Uptown" },
+  { "name": "Burger Barn", "cuisine": "American", "priceLevel": "$", "imageUrl": "https://example.com/images/burgerbarn.jpg", "rating": 4.4, "location": "Midtown" },
+  { "name": "Thai Spice", "cuisine": "Thai", "priceLevel": "$$", "imageUrl": "https://example.com/images/thaispice.jpg", "rating": 4.7, "location": "Downtown" },
+  { "name": "Curry House", "cuisine": "Indian", "priceLevel": "$$", "imageUrl": "https://example.com/images/curryhouse.jpg", "rating": 4.5, "location": "Uptown" },
+  { "name": "Falafel King", "cuisine": "Middle Eastern", "priceLevel": "$", "imageUrl": "https://example.com/images/falafelking.jpg", "rating": 4.3, "location": "Downtown" },
+  { "name": "Pasta Corner", "cuisine": "Italian", "priceLevel": "$$", "imageUrl": "https://example.com/images/pastacorner.jpg", "rating": 4.4, "location": "Midtown" },
+  { "name": "Ramen World", "cuisine": "Japanese", "priceLevel": "$$", "imageUrl": "https://example.com/images/ramenworld.jpg", "rating": 4.7, "location": "Downtown" },
+  { "name": "Taco Town", "cuisine": "Mexican", "priceLevel": "$", "imageUrl": "https://example.com/images/tacotown.jpg", "rating": 4.5, "location": "Uptown" },
+  { "name": "BBQ Shack", "cuisine": "American", "priceLevel": "$$", "imageUrl": "https://example.com/images/bbqshack.jpg", "rating": 4.6, "location": "Midtown" }
+]

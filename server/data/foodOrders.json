@@ -1,0 +1,22 @@
+[
+  { "name": "Sushi", "description": "Fresh salmon sushi rolls", "price": 12.99, "imageUrl": "https://example.com/images/sushi.jpg", "category": "Japanese", "rating": 4.5 },
+  { "name": "Margherita Pizza", "description": "Classic pizza with tomato and cheese", "price": 8.99, "imageUrl": "https://example.com/images/pizza.jpg", "category": "Italian", "rating": 4.7 },
+  { "name": "Cheeseburger", "description": "Beef burger with cheese and lettuce", "price": 9.5, "imageUrl": "https://example.com/images/cheeseburger.jpg", "category": "American", "rating": 4.3 },
+  { "name": "Veggie Wrap", "description": "Wrap with fresh vegetables", "price": 7.99, "imageUrl": "https://example.com/images/veggie-wrap.jpg", "category": "Vegetarian", "rating": 4.0 },
+  { "name": "Pad Thai", "description": "Thai noodles with peanuts and veggies", "price": 11.5, "imageUrl": "https://example.com/images/pad-thai.jpg", "category": "Thai", "rating": 4.6 },
+  { "name": "Chicken Tikka", "description": "Spiced grilled chicken chunks", "price": 13.5, "imageUrl": "https://example.com/images/chicken-tikka.jpg", "category": "Indian", "rating": 4.8 },
+  { "name": "Falafel Sandwich", "description": "Chickpea fritters in pita", "price": 8.0, "imageUrl": "https://example.com/images/falafel.jpg", "category": "Middle Eastern", "rating": 4.2 },
+  { "name": "Caesar Salad", "description": "Romaine lettuce with Caesar dressing", "price": 6.5, "imageUrl": "https://example.com/images/caesar-salad.jpg", "category": "Salad", "rating": 4.1 },
+  { "name": "Ramen", "description": "Japanese noodle soup with pork", "price": 12.0, "imageUrl": "https://example.com/images/ramen.jpg", "category": "Japanese", "rating": 4.7 },
+  { "name": "Taco", "description": "Soft shell taco with beef and salsa", "price": 5.99, "imageUrl": "https://example.com/images/taco.jpg", "category": "Mexican", "rating": 4.4 },
+  { "name": "Pasta Carbonara", "description": "Creamy pasta with bacon", "price": 10.5, "imageUrl": "https://example.com/images/carbonara.jpg", "category": "Italian", "rating": 4.5 },
+  { "name": "BBQ Ribs", "description": "Smoky barbecue pork ribs", "price": 15.99, "imageUrl": "https://example.com/images/bbq-ribs.jpg", "category": "American", "rating": 4.6 },
+  { "name": "Vegetable Curry", "description": "Mixed veggies in spicy curry sauce", "price": 9.5, "imageUrl": "https://example.com/images/veg-curry.jpg", "category": "Indian", "rating": 4.3 },
+  { "name": "Miso Soup", "description": "Japanese soup with tofu and seaweed", "price": 3.5, "imageUrl": "https://example.com/images/miso-soup.jpg", "category": "Japanese", "rating": 4.2 },
+  { "name": "Chicken Burrito", "description": "Flour tortilla filled with chicken and rice", "price": 8.99, "imageUrl": "https://example.com/images/burrito.jpg", "category": "Mexican", "rating": 4.5 },
+  { "name": "Greek Salad", "description": "Salad with feta cheese, olives, and cucumber", "price": 7.5, "imageUrl": "https://example.com/images/greek-salad.jpg", "category": "Salad", "rating": 4.3 },
+  { "name": "Beef Pho", "description": "Vietnamese beef noodle soup", "price": 11.0, "imageUrl": "https://example.com/images/pho.jpg", "category": "Vietnamese", "rating": 4.6 },
+  { "name": "Shrimp Fried Rice", "description": "Stir-fried rice with shrimp and veggies", "price": 9.99, "imageUrl": "https://example.com/images/shrimp-fried-rice.jpg", "category": "Chinese", "rating": 4.4 },
+  { "name": "Veggie Pizza", "description": "Pizza topped with vegetables", "price": 8.5, "imageUrl": "https://example.com/images/veggie-pizza.jpg", "category": "Italian", "rating": 4.2 },
+  { "name": "Chicken Wings", "description": "Spicy buffalo wings", "price": 7.99, "imageUrl": "https://example.com/images/chicken-wings.jpg", "category": "American", "rating": 4.5 }
+]
