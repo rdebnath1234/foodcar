@@ -11,7 +11,9 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import logo from "../assets/food-delivery-app-logo.png";
 import banner from "../assets/food-banner.jpg";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { QRCodeCanvas } from "qrcode.react";
 
+const apkUrl = "https://your-apk-link.com";
 const toast = (msg) => alert(msg);
 
 export default function LoginUI() {
@@ -189,15 +191,14 @@ export default function LoginUI() {
           )}
         </div>
       </div>
-
       {/* RIGHT BANNER IMAGE */}
       <div
-        className="col-12 col-md-6 d-none d-md-flex justify-content-center align-items-center"
-        style={{
-          backgroundImage: `url(${banner})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        className="flex-grow-1 d-none d-md-flex justify-content-center align-items-center position-relative"
+      style={{
+        backgroundImage: `url(${banner})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
       >
         <h1
           className="text-white fw-bold shadow-lg text-center"
@@ -205,6 +206,28 @@ export default function LoginUI() {
         >
           Welcome to FoodCar
         </h1>
+      </div>
+      <div
+        className="position-absolute d-flex flex-column align-items-center"
+        style={{
+          bottom: "20px",
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
+      >
+        <QRCodeCanvas
+          value={apkUrl}
+          size={100}
+          bgColor={"#ffffff"}
+          fgColor={"#000000"}
+          level={"H"}
+        />
+        <div
+          className="text-white text-center mt-2"
+          style={{ textShadow: "1px 1px 5px black" }}
+        >
+          Scan to Download App
+        </div>
       </div>
     </div>
   );
