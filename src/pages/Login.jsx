@@ -63,7 +63,11 @@ export default function LoginUI() {
 
     try {
       const recaptcha = await setupRecaptcha();
-      const result = await signInWithPhoneNumber(auth, `+91${phone}`, recaptcha);
+      const result = await signInWithPhoneNumber(
+        auth,
+        `+91${phone}`,
+        recaptcha
+      );
 
       setConfirmation(result);
       setTimer(30);
@@ -115,7 +119,6 @@ export default function LoginUI() {
 
   return (
     <div className="d-flex flex-column flex-md-row vh-100 position-relative">
-      
       {/* FIXED LOGIN BOX */}
       <div
         className="d-flex justify-content-center align-items-center p-3 bg-light"
@@ -188,6 +191,10 @@ export default function LoginUI() {
       <div
         className="flex-grow-1 d-none d-md-flex justify-content-center align-items-center position-relative"
         style={{
+          right: 0,
+          top: 0,
+          height: "100vh",
+          width: "calc(100vw - 350px)",
           backgroundImage: `url(${banner})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -224,7 +231,10 @@ export default function LoginUI() {
         }}
       >
         <QRCodeCanvas value={apkUrl} size={100} />
-        <div className="text-white mt-2" style={{ textShadow: "1px 1px 5px black" }}>
+        <div
+          className="text-white mt-2"
+          style={{ textShadow: "1px 1px 5px black" }}
+        >
           Scan to Download App
         </div>
       </div>
