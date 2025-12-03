@@ -29,7 +29,6 @@ export default function LoginUI() {
   const [timer, setTimer] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Auto redirect if already logged in
   useEffect(() => {
     onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -44,11 +43,10 @@ export default function LoginUI() {
     });
   }, []);
 
-  // Setup Recaptcha
   const setupRecaptcha = async () => {
     if (!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(
-        auth, // <-- auth FIRST
+        auth,
         "recaptcha-container",
         { size: "normal" }
       );
@@ -58,7 +56,6 @@ export default function LoginUI() {
     return window.recaptchaVerifier;
   };
 
-  // Send OTP
   const handleSendOTP = async () => {
     if (phone.length !== 10) return toast("Enter a valid number");
 
@@ -66,11 +63,7 @@ export default function LoginUI() {
 
     try {
       const recaptcha = await setupRecaptcha();
-      const result = await signInWithPhoneNumber(
-        auth,
-        `+91${phone}`,
-        recaptcha
-      );
+      const result = await signInWithPhoneNumber(auth, `+91${phone}`, recaptcha);
 
       setConfirmation(result);
       setTimer(30);
@@ -79,21 +72,18 @@ export default function LoginUI() {
       setTimeout(() => otpInputRef.current?.focus(), 300);
       toast("OTP Sent!");
     } catch (err) {
-      console.error(err);
       toast("Failed to send OTP. Try again.");
     }
 
     setLoading(false);
   };
 
-  // Timer logic
   useEffect(() => {
     if (timer === 0) return;
     const interval = setTimeout(() => setTimer(timer - 1), 1000);
     return () => clearTimeout(interval);
   }, [timer]);
 
-  // Verify OTP
   const verifyOTP = async () => {
     if (!confirmation) return;
     if (otp.length < 6) return toast("Enter full 6-digit OTP");
@@ -103,11 +93,9 @@ export default function LoginUI() {
       const result = await confirmation.confirm(otp);
       const user = result.user;
 
-      // Check Firestore
       const userRef = doc(db, "users", user.uid);
       const snap = await getDoc(userRef);
 
-      // Create user if not exists
       if (!snap.exists()) {
         await setDoc(userRef, {
           uid: user.uid,
@@ -120,16 +108,20 @@ export default function LoginUI() {
       toast("Login Successful!");
       navigate("/home", { replace: true });
     } catch (err) {
-      console.error(err);
       toast("Invalid OTP. Try again.");
     }
     setLoading(false);
   };
 
   return (
-    <div className="d-flex flex-column flex-md-row h-100">
-      <div className="col-12 col-md-6 d-flex justify-content-center align-items-center p-3 bg-light">
-        <div className="card shadow p-4 w-100" style={{ maxWidth: "400px" }}>
+    <div className="d-flex flex-column flex-md-row vh-100 position-relative">
+      
+      {/* FIXED LOGIN BOX */}
+      <div
+        className="d-flex justify-content-center align-items-center p-3 bg-light"
+        style={{ width: "350px", minWidth: "350px" }}
+      >
+        <div className="card shadow p-4 w-100" style={{ maxWidth: "350px" }}>
           <div className="text-center mb-4">
             <img src={logo} alt="logo" style={{ width: "120px" }} />
           </div>
@@ -191,22 +183,38 @@ export default function LoginUI() {
           )}
         </div>
       </div>
-      {/* RIGHT BANNER IMAGE */}
+
+      {/* FULL MAX BANNER */}
       <div
         className="flex-grow-1 d-none d-md-flex justify-content-center align-items-center position-relative"
-      style={{
-        backgroundImage: `url(${banner})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
+        style={{
+          backgroundImage: `url(${banner})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
+        {/* Overlay */}
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.45)",
+          }}
+        ></div>
+
         <h1
-          className="text-white fw-bold shadow-lg text-center"
-          style={{ textShadow: "2px 2px 10px black" }}
+          className="text-white fw-bold text-center position-relative"
+          style={{
+            fontSize: "3.5rem",
+            textShadow: "3px 3px 18px rgba(0,0,0,1)",
+          }}
         >
           Welcome to FoodCar
         </h1>
       </div>
+
+      {/* QR BOTTOM CENTER */}
       <div
         className="position-absolute d-flex flex-column align-items-center"
         style={{
@@ -215,17 +223,8 @@ export default function LoginUI() {
           transform: "translateX(-50%)",
         }}
       >
-        <QRCodeCanvas
-          value={apkUrl}
-          size={100}
-          bgColor={"#ffffff"}
-          fgColor={"#000000"}
-          level={"H"}
-        />
-        <div
-          className="text-white text-center mt-2"
-          style={{ textShadow: "1px 1px 5px black" }}
-        >
+        <QRCodeCanvas value={apkUrl} size={100} />
+        <div className="text-white mt-2" style={{ textShadow: "1px 1px 5px black" }}>
           Scan to Download App
         </div>
       </div>
