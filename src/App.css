@@ -40,3 +40,76 @@
 .read-the-docs {
   color: #888;
 }
+/* Smooth transition globally */
+* {
+  transition: all 0.25s ease;
+}
+
+/* App background gradient */
+body {
+  background: linear-gradient(135deg, #ffe5d9, #fad2e1, #dbe7ff);
+}
+
+/* Nice scrollbar */
+::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #ff5c5c;
+  border-radius: 10px;
+}
+
+/* Glass morphism style components */
+.glass-card {
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* Hover pop effect */
+.card-hover:hover {
+  transform: scale(1.05) translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+}
+
+/* Modern input */
+.search-input {
+  border-radius: 40px;
+  padding: 14px 22px;
+  border: none;
+  background: #ffffffc7;
+  backdrop-filter: blur(6px);
+  outline: none;
+  font-size: 15px;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 10px rgba(255, 94, 91, 0.5);
+}
+
+/* Navigation pill buttons */
+.tab-btn {
+  padding: 12px;
+  border-radius: 40px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.tab-active {
+  background: #ff4b4b;
+  color: white;
+  box-shadow: 0 6px 18px rgba(255, 75, 75, 0.5);
+}
+
+.tab-inactive {
+  background: transparent;
+  color: #333;
+}
+
+.profile-drawer {
+  background: rgba(255,255,255,0.4);
+  backdrop-filter: blur(18px);
+}

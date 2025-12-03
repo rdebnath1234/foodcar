@@ -1,4 +1,3 @@
-// firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -16,10 +15,9 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// DEV: Disable reCAPTCHA for testing
+// Disable Recaptcha only in development mode
 if (import.meta.env.DEV) {
-  auth.settings = auth.settings || {};
-  auth.settings.appVerificationDisabledForTesting = true;
+  auth.appVerificationDisabledForTesting = true;
 }
 
 export { RecaptchaVerifier, signInWithPhoneNumber };

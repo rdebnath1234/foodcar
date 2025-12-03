@@ -5,7 +5,11 @@ import { AuthContext } from "../contexts/AuthContext";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { PencilSquare, StarFill } from "react-bootstrap-icons";
+import { PencilSquare, StarFill, ThreeDotsVertical } from "react-bootstrap-icons";
+import logo from "../assets/food-delivery-app-logo.png"
+// Single-file, self-contained modernized Home component
+// Drop this file into your React app (e.g. src/pages/Home.jsx) and ensure
+// firebase and AuthContext are configured as in your project.
 
 export default function Home() {
   const { user } = useContext(AuthContext);
@@ -18,52 +22,49 @@ export default function Home() {
   const [userData, setUserData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useState("Fetching location...");
-  const [activeTab, setActiveTab] = useState("food"); // "food" or "restaurants"
+  const [activeTab, setActiveTab] = useState("food");
 
   const navigate = useNavigate();
   const auth = getAuth();
-
   const FALLBACK_AVATAR = "https://i.ibb.co/2FsfXqM/default-avatar.png";
 
-  // Logout handler
   const handleLogout = async () => {
     try {
       await signOut(auth);
       setShowProfile(false);
-      navigate("/"); // Redirect to login page
+      navigate("/");
     } catch (err) {
       console.error("Logout error:", err);
     }
   };
 
-  // Fetch data
   useEffect(() => {
+    let mounted = true;
     const fetchData = async () => {
       try {
         setLoading(true);
-
         const foodSnapshot = await getDocs(collection(db, "foodItems"));
-        setFoodItems(foodSnapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-
         const restaurantSnapshot = await getDocs(collection(db, "restaurants"));
+
+        if (!mounted) return;
+
+        setFoodItems(foodSnapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
         setRestaurants(restaurantSnapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
 
-        // categories & offers are optional — use placeholders if not present
         try {
           const catSnapshot = await getDocs(collection(db, "categories"));
           setCategories(catSnapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-        } catch {
+        } catch (e) {
           setCategories([]);
         }
 
         try {
           const offerSnapshot = await getDocs(collection(db, "offers"));
           setOffers(offerSnapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-        } catch {
+        } catch (e) {
           setOffers([]);
         }
 
-        // Load user profile doc from Firestore if logged in
         if (user?.uid) {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists()) setUserData(userDoc.data());
@@ -74,13 +75,12 @@ export default function Home() {
       } catch (err) {
         console.error("Firestore fetch error:", err);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     fetchData();
 
-    // get browser location (best-effort)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -90,21 +90,27 @@ export default function Home() {
               `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`
             );
             const data = await res.json();
-            setLocation(data.address.city || data.address.town || data.address.village || "Unknown location");
-          } catch {
-            setLocation(`Lat: ${latitude.toFixed(2)}, Lng: ${longitude.toFixed(2)}`);
+            if (mounted)
+              setLocation(
+                data?.address?.city || data?.address?.town || data?.address?.village || "Unknown location"
+              );
+          } catch (e) {
+            if (mounted) setLocation(`Lat: ${latitude.toFixed(2)}, Lng: ${longitude.toFixed(2)}`);
           }
         },
-        () => setLocation("Location permission denied")
+        () => mounted && setLocation("Location permission denied")
       );
     } else {
       setLocation("Geolocation not supported");
     }
+
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   const toggleProfileDrawer = () => setShowProfile((s) => !s);
 
-  // Filters
   const filteredFoodItems = foodItems.filter((f) =>
     f.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -114,276 +120,303 @@ export default function Home() {
     r.cuisine?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading) return <h3 className="text-center mt-5">Loading...</h3>;
+  if (loading) return <div className="loading-root">Loading...</div>;
 
-  // small helper components for brevity
+  /* ---------- Helper components (kept inside same file) ---------- */
   const CategoryChip = ({ cat }) => (
     <div
-      onClick={() => setSearchQuery(cat.name)}
-      style={{
-        width: 92,
-        minWidth: 92,
-        textAlign: "center",
-        cursor: "pointer",
-      }}
+      onClick={() => setSearchQuery(cat.name || "")}
+      className="category-chip"
     >
-      <div style={{
-        width: 72,
-        height: 72,
-        borderRadius: 18,
-        overflow: "hidden",
-        margin: "0 auto 8px",
-        boxShadow: "0 6px 18px rgba(0,0,0,0.08)"
-      }}>
-        <img src={cat.imageUrl || "https://source.unsplash.com/80x80/?food"} alt={cat.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      <div className="cat-image">
+        <img src={cat.imageUrl || `https://source.unsplash.com/80x80/?${cat.name || "food"}`} alt={cat.name} />
       </div>
-      <div style={{ fontSize: 13, color: "#333" }}>{cat.name}</div>
+      <div className="cat-name">{cat.name}</div>
     </div>
   );
 
   const OfferCard = ({ o }) => (
-    <div style={{ width: 320, minWidth: 320 }}>
-      <div style={{
-        borderRadius: 12,
-        overflow: "hidden",
-        height: 150,
-        boxShadow: "0 8px 24px rgba(0,0,0,0.08)"
-      }}>
-        <img src={o.imageUrl || "https://source.unsplash.com/1200x400/?food,offer"} alt="offer" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-      </div>
+    <div className="offer-card">
+      <img src={o.imageUrl || "https://source.unsplash.com/1200x400/?food,offer"} alt="offer" />
     </div>
   );
 
   const FoodCard = ({ item }) => (
     <div
-      key={item.id}
-      className="shadow-sm"
-      style={{
-        width: 220,
-        borderRadius: 12,
-        overflow: "hidden",
-        background: "#fff",
-        cursor: "pointer"
-      }}
-      onClick={() => {
-        // open restaurant if item has restaurantId, else no-op
-        if (item.restaurantId) navigate(`/restaurant/${item.restaurantId}`);
-      }}
+      className="food-card card-hover"
+      onClick={() => item.restaurantId && navigate(`/restaurant/${item.restaurantId}`)}
     >
-      <div style={{ height: 140, overflow: "hidden" }}>
-        <img src={item.imageUrl || "https://source.unsplash.com/400x300/?dish"} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      <div className="food-img-wrap">
+        <img src={item.imageUrl || "https://source.unsplash.com/400x300/?dish"} alt={item.name} />
       </div>
-      <div style={{ padding: 12 }}>
-        <div style={{ fontWeight: 600, fontSize: 15 }}>{item.name}</div>
-        <div style={{ color: "#2a9d8f", marginTop: 6, fontWeight: 600 }}>₹{item.price}</div>
-        <div style={{ color: "#666", fontSize: 13, marginTop: 6 }}>{(item.description || "").slice(0, 70)}</div>
+      <div className="food-body">
+        <div className="food-title">{item.name}</div>
+        <div className="food-meta">
+          <div className="food-price">₹{item.price}</div>
+          <div className="food-rating">{item.rating ?? "4.2"} ★</div>
+        </div>
+        <div className="food-desc">{(item.description || "").slice(0, 80)}</div>
       </div>
     </div>
   );
 
   const RestaurantCard = ({ res }) => (
-    <div
-      key={res.id}
-      onClick={() => navigate(`/restaurant/${res.id}`)}
-      style={{
-        width: 300,
-        minWidth: 300,
-        borderRadius: 12,
-        overflow: "hidden",
-        background: "#fff",
-        boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
-        cursor: "pointer",
-      }}
-    >
-      <div style={{ height: 160, overflow: "hidden" }}>
-        <img src={res.imageUrl || "https://source.unsplash.com/800x600/?restaurant"} alt={res.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+    <div className="res-card card-hover" onClick={() => navigate(`/restaurant/${res.id}`)}>
+      <div className="res-img">
+        <img src={res.imageUrl || "https://source.unsplash.com/800x600/?restaurant"} alt={res.name} />
       </div>
-      <div style={{ padding: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div className="res-body">
+        <div className="res-head">
           <div>
-            <div style={{ fontWeight: 700, fontSize: 16 }}>{res.name}</div>
-            <div style={{ color: "#666", fontSize: 13, marginTop: 4 }}>{res.cuisine || "Multi-cuisine"} • {res.priceLevel ? `₹${res.priceLevel} for one` : "Price N/A"}</div>
+            <div className="res-name">{res.name}</div>
+            <div className="res-sub">{res.cuisine || "Multi-cuisine"} • {res.priceLevel ? `₹${res.priceLevel} for one` : "Price N/A"}</div>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ background: "#fff2d9", padding: "6px 8px", borderRadius: 8, fontWeight: 700 }}>
-              <StarFill style={{ color: "#f59e0b", verticalAlign: "middle", marginRight: 6 }} />
-              {res.rating ?? "4.2"}
-            </div>
+          <div className="res-rating">
+            <StarFill /> {res.rating ?? "4.2"}
           </div>
         </div>
-        <div style={{ marginTop: 8, color: "#777", fontSize: 13 }}>{res.shortDesc || res.about?.slice(0, 80) || "Popular spot"}</div>
+        <div className="res-desc">{res.shortDesc || res.about?.slice(0, 100) || "Popular spot near you"}</div>
       </div>
     </div>
   );
 
   return (
-    <div style={{ display: "flex" }}>
-      {/* Sidebar */}
-      <aside style={{
-        width: 220,
-        height: "100vh",
-        position: "fixed",
-        left: 0,
-        top: 0,
-        padding: 20,
-        background: "#fff",
-        borderRight: "1px solid #eee",
-        overflowY: "auto"
-      }}>
-        <img src="../src/assets/food-delivery-app-logo.png" alt="FoodCar" style={{ width: 140, display: "block", marginBottom: 14 }} />
-        <h5 style={{ marginBottom: 18, color: "#222" }}>FoodCar</h5>
+    <div className="modern-root">
+      {/* Styles injected so file can remain single-file; feel free to move to App.css */}
+      <style>{`
+        :root{ --accent:#ff4b4b; --muted:#6b7280; --glass: rgba(255,255,255,0.6); }
+        .modern-root{ min-height:100vh; display:flex; background: linear-gradient(180deg, #fff7f6 0%, #f6fbff 100%); color:#111; font-family: Inter, 'Segoe UI', Roboto, system-ui, -apple-system; }
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <button className={`btn ${activeTab === "food" ? "btn-dark" : "btn-link"}`} onClick={() => setActiveTab("food")}>🍔 Food Orders</button>
-          <button className={`btn ${activeTab === "restaurants" ? "btn-dark" : "btn-link"}`} onClick={() => setActiveTab("restaurants")}>🍽️ Restaurants</button>
+        /* Sidebar */
+        aside.sidebar{ width:220px; padding:20px; position:fixed; left:0; top:0; bottom:0; border-right:1px solid rgba(17,24,39,0.06); background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.6)); backdrop-filter: blur(6px); }
+        .brand{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+        .brand img{ width:130px; }
+        .brand h5{ margin:0; font-weight:800; letter-spacing: -0.2px; }
+        .nav-buttons{ display:flex; flex-direction:column; gap:10px; margin-top:18px; }
+        .tab-btn{ padding:10px 14px; border-radius:999px; border:none; font-weight:700; cursor:pointer; }
+        .tab-active{ background: var(--accent); color:white; box-shadow: 0 8px 18px rgba(255,75,75,0.16); }
+        .tab-inactive{ background: transparent; color:var(--muted); }
+
+        /* Main area */
+        main.content{ margin-left:220px; flex:1; }
+        .topbar{ position:fixed; left:220px; right:0; top:0; height:72px; display:flex; align-items:center; gap:16px; padding:12px 20px; border-bottom:1px solid rgba(17,24,39,0.06); background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.6)); backdrop-filter: blur(6px); z-index:1100; }
+        .loc{ font-weight:700; color: #111; min-width:160px; }
+        .search-wrap{ flex:1; display:flex; justify-content:center; }
+        .search-input{ width:100%; max-width:760px; border-radius:999px; padding:12px 18px; border:none; box-shadow: 0 6px 20px rgba(16,24,40,0.04); font-size:14px; }
+        .avatar-btn img{ width:44px; height:44px; border-radius:10px; cursor:pointer; object-fit:cover; }
+
+        /* page content area */
+        .page-pad{ padding:110px 28px 48px 28px; max-width:1400px; margin:0 auto; }
+
+        section h4{ margin-bottom:12px; font-weight:800; }
+
+        /* Offers */
+        .offers-row{ display:flex; gap:16px; overflow-x:auto; padding-bottom:6px; }
+        .offer-card{ min-width:320px; border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(16,24,40,0.06); }
+        .offer-card img{ width:100%; height:150px; object-fit:cover; display:block; }
+
+        /* categories */
+        .cats-row{ display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; }
+        .category-chip{ width:92px; min-width:92px; text-align:center; cursor:pointer; }
+        .cat-image{ width:72px; height:72px; border-radius:14px; overflow:hidden; margin:0 auto 8px; box-shadow:0 8px 22px rgba(16,24,40,0.06); }
+        .cat-image img{ width:100%; height:100%; object-fit:cover; }
+        .cat-name{ font-size:13px; color:#111; }
+
+        /* horizontal lists */
+        .h-list{ display:flex; gap:16px; overflow-x:auto; padding-bottom:6px; }
+
+        /* Card styles */
+        .glass-card{ background: rgba(255,255,255,0.8); border-radius:14px; }
+        .card-hover{ transition: transform .22s ease, box-shadow .22s ease; }
+        .card-hover:hover{ transform: translateY(-6px) scale(1.02); box-shadow:0 20px 40px rgba(16,24,40,0.12); }
+
+        .food-card{ width:240px; border-radius:12px; overflow:hidden; background:white; box-shadow:0 6px 28px rgba(16,24,40,0.04); }
+        .food-img-wrap{ height:150px; overflow:hidden; }
+        .food-img-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
+        .food-body{ padding:12px; }
+        .food-title{ font-weight:800; font-size:16px; }
+        .food-meta{ display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+        .food-price{ color:var(--accent); font-weight:800; }
+        .food-rating{ background: #fff4f4; padding:6px 8px; border-radius:10px; font-weight:700; }
+        .food-desc{ margin-top:8px; color:var(--muted); font-size:13px; }
+
+        .res-card{ width:300px; border-radius:12px; overflow:hidden; background:white; box-shadow:0 8px 28px rgba(16,24,40,0.04); }
+        .res-img{ height:160px; overflow:hidden; }
+        .res-img img{ width:100%; height:100%; object-fit:cover; }
+        .res-body{ padding:12px; }
+        .res-name{ font-weight:900; font-size:16px; }
+        .res-sub{ color:var(--muted); margin-top:6px; font-size:13px; }
+        .res-head{ display:flex; justify-content:space-between; align-items:center; }
+        .res-rating{ background:#fff7ed; padding:6px 8px; border-radius:10px; font-weight:800; display:flex; align-items:center; gap:8px; }
+
+        /* grid lists */
+        .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:16px; }
+        .grid-res{ display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:16px; }
+
+        /* profile drawer */
+        .profile-drawer{ position:fixed; top:0; right: ${showProfile ? '0' : '-380px'}; width:360px; height:100vh; background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.6)); backdrop-filter: blur(10px); box-shadow:-10px 0 40px rgba(16,24,40,0.12); padding:20px; z-index:1500; transition: right .22s ease; }
+        .profile-drawer img{ width:110px; height:110px; border-radius:18px; object-fit:cover; }
+        .profile-actions{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+
+        /* backdrop */
+        .backdrop{ position:fixed; inset:0; background: rgba(0,0,0,0.28); z-index:1400; }
+
+        /* loading */
+        .loading-root{ min-height:100vh; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:700; }
+
+        /* responsive tweaks */
+        @media (max-width: 900px){
+          aside.sidebar{ display:none; }
+          main.content{ margin-left:0; }
+          .topbar{ left:0; }
+          .page-pad{ padding-left:16px; padding-right:16px; }
+          .food-card{ width:200px; }
+        }
+      `}</style>
+
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <div className="brand">
+          <img src={logo} alt="FoodCar" />
+          <h5>FoodCar</h5>
+          <div style={{ color: "var(--muted)" }}>Fast. Fresh. Local.</div>
+        </div>
+
+        <div className="nav-buttons">
+          <button
+            className={`tab-btn ${activeTab === "food" ? "tab-active" : "tab-inactive"}`}
+            onClick={() => setActiveTab("food")}
+          >
+            🍔 Food Orders
+          </button>
+
+          <button
+            className={`tab-btn ${activeTab === "restaurants" ? "tab-active" : "tab-inactive"}`}
+            onClick={() => setActiveTab("restaurants")}
+          >
+            🍽️ Restaurants
+          </button>
+
+          <button className="tab-btn tab-inactive" onClick={() => navigate('/offers')}>🎟️ Offers</button>
+          <button className="tab-btn tab-inactive" onClick={() => navigate('/orders')}>🧾 My orders</button>
         </div>
       </aside>
 
       {/* Main */}
-      <main style={{ marginLeft: 220, flex: 1 }}>
-        {/* Fixed top bar */}
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 220,
-          right: 0,
-          zIndex: 1100,
-          background: "#fff",
-          borderBottom: "1px solid #eee",
-          padding: "14px 20px",
-          display: "flex",
-          alignItems: "center",
-          gap: 20
-        }}>
-          <div style={{ fontWeight: 700, color: "#333" }}>📍 {location}</div>
+      <main className="content">
+        <div className="topbar">
+          <div className="loc">📍 {location}</div>
+          <div className="search-wrap">
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search dishes, restaurants or cuisines"
+              className="search-input"
+            />
+          </div>
 
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search for dishes, restaurants or cuisines"
-            style={{
-              flex: 1,
-              maxWidth: 720,
-              padding: "12px 14px",
-              borderRadius: 12,
-              border: "1px solid #e6e6e6",
-              fontSize: 14
-            }}
-          />
-
-          <div>
+          <div className="avatar-btn">
             {userData ? (
-              <img
-                src={userData.profileUrl || FALLBACK_AVATAR}
-                alt="avatar"
-                onClick={toggleProfileDrawer}
-                style={{ width: 44, height: 44, borderRadius: 12, objectFit: "cover", cursor: "pointer" }}
-              />
+              <img src={userData.profileUrl || FALLBACK_AVATAR} alt="avatar" onClick={toggleProfileDrawer} />
             ) : (
-              <button className="btn btn-sm btn-primary" onClick={() => navigate("/")}>Login</button>
+              <button className="btn btn-sm btn-primary" onClick={() => navigate('/')}>Login</button>
             )}
           </div>
         </div>
 
-        {/* Content (push below fixed top bar) */}
-        <div style={{ padding: 24, paddingTop: 104 }}> {/* 104px to clear top bar */}
+        <div className="page-pad">
           {/* Offers */}
           <section style={{ marginBottom: 28 }}>
-            <h4 style={{ marginBottom: 12, fontWeight: 700 }}>Latest Offers</h4>
-            <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4>Latest Offers</h4>
+              <small style={{ color: 'var(--muted)' }}>Hot deals</small>
+            </div>
+
+            <div className="offers-row" style={{ marginTop: 8 }}>
               {offers.length ? offers.map(o => <OfferCard key={o.id} o={o} />)
-                : (
-                  // placeholder offer cards
-                  [1,2,3].map(i => (
-                    <div key={i} style={{ width: 320 }}>
-                      <div style={{ borderRadius: 12, overflow: "hidden", height: 150 }}>
-                        <img src={`https://source.unsplash.com/1200x400/?food,offer,${i}`} alt="offer" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      </div>
-                    </div>
-                  ))
-                )}
+                : [1,2,3].map(i => (
+                  <div key={i} className="offer-card">
+                    <img src={`https://source.unsplash.com/1200x400/?food,offer,${i}`} alt="offer" />
+                  </div>
+                ))}
             </div>
           </section>
 
           {/* Categories */}
           <section style={{ marginBottom: 28 }}>
-            <h4 style={{ marginBottom: 12, fontWeight: 700 }}>Categories</h4>
-            <div style={{ display: "flex", gap: 12, overflowX: "auto", paddingBottom: 6 }}>
+            <h4>Categories</h4>
+            <div className="cats-row" style={{ marginTop: 8 }}>
               {categories.length ? categories.map(cat => <CategoryChip key={cat.id} cat={cat} />)
-                : ["Biryani","Pizza","Burger","Desserts","Chinese","South Indian"].map((n, i) => (
-                  <CategoryChip key={n + i} cat={{ id: n, name: n, imageUrl: `https://source.unsplash.com/80x80/?${n}` }} />
-                ))
-              }
+                : ['Biryani','Pizza','Burger','Desserts','Chinese','South Indian'].map((n,i) => (
+                  <CategoryChip key={n+i} cat={{ id:n, name:n, imageUrl:`https://source.unsplash.com/80x80/?${n}` }} />
+                ))}
             </div>
           </section>
 
-          {/* Recommended (horizontal) */}
+          {/* Recommended */}
           <section style={{ marginBottom: 28 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <h4 style={{ fontWeight: 700 }}>Recommended for you</h4>
-              <small style={{ color: "#666" }}>Based on your taste</small>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4>Recommended for you</h4>
+              <small style={{ color: 'var(--muted)' }}>Based on your taste</small>
             </div>
 
-            <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 6 }}>
+            <div className="h-list" style={{ marginTop: 8 }}>
               {filteredFoodItems.length ? filteredFoodItems.slice(0, 10).map(item => <FoodCard key={item.id} item={item} />)
                 : [1,2,3,4].map(i => (
-                  <div key={i} style={{ width: 220, borderRadius: 12, background: "#fff", boxShadow: "0 8px 20px rgba(0,0,0,0.04)" }}>
-                    <div style={{ height: 140 }}>
-                      <img src={`https://source.unsplash.com/400x300/?dish,${i}`} alt="dish" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <div key={i} className="glass-card" style={{ width:220, borderRadius:12, overflow:'hidden' }}>
+                    <div style={{ height:140 }}>
+                      <img src={`https://source.unsplash.com/400x300/?dish,${i}`} alt="dish" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
                     </div>
-                    <div style={{ padding: 12 }}>
-                      <div style={{ fontWeight: 600 }}>Sample Dish {i}</div>
-                      <div style={{ color: "#2a9d8f", marginTop: 6 }}>₹149</div>
+                    <div style={{ padding:12 }}>
+                      <div style={{ fontWeight:600 }}>Sample Dish {i}</div>
+                      <div style={{ color:'var(--accent)', marginTop:6, fontWeight:700 }}>₹149</div>
                     </div>
                   </div>
-                ))
-              }
+                ))}
             </div>
           </section>
 
-          {/* Popular Restaurants (grid-ish horizontal) */}
+          {/* Popular restaurants */}
           <section style={{ marginBottom: 28 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <h4 style={{ fontWeight: 700 }}>Popular restaurants</h4>
-              <small style={{ color: "#666" }}>Trending near you</small>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h4>Popular restaurants</h4>
+              <small style={{ color: 'var(--muted)' }}>Trending near you</small>
             </div>
 
-            <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 6 }}>
+            <div className="h-list" style={{ marginTop: 8 }}>
               {filteredRestaurants.length ? filteredRestaurants.slice(0, 12).map(r => <RestaurantCard key={r.id} res={r} />)
                 : [1,2,3,4,5].map(i => (
-                  <div key={i} style={{ width: 300, borderRadius: 12, overflow: "hidden", background: "#fff", boxShadow: "0 8px 20px rgba(0,0,0,0.04)" }}>
-                    <div style={{ height: 160 }}>
-                      <img src={`https://source.unsplash.com/800x600/?restaurant,${i}`} alt="res" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <div key={i} className="res-card">
+                    <div className="res-img">
+                      <img src={`https://source.unsplash.com/800x600/?restaurant,${i}`} alt="res" />
                     </div>
-                    <div style={{ padding: 12 }}>
-                      <div style={{ fontWeight: 700 }}>Sample Restaurant {i}</div>
-                      <div style={{ color: "#666", marginTop: 6 }}>Multi-cuisine • ₹350 for one</div>
+                    <div className="res-body">
+                      <div style={{ fontWeight:700 }}>Sample Restaurant {i}</div>
+                      <div style={{ color: 'var(--muted)', marginTop:6 }}>Multi-cuisine • ₹350 for one</div>
                     </div>
                   </div>
-                ))
-              }
+                ))}
             </div>
           </section>
 
-          {/* All Items / Restaurants (responsive grid below) */}
+          {/* All Items / Restaurants */}
           <section style={{ marginBottom: 40 }}>
-            {activeTab === "food" && (
+            {activeTab === 'food' && (
               <>
-                <h4 style={{ marginBottom: 12, fontWeight: 700 }}>All Food Items</h4>
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                  gap: 16
-                }}>
+                <h4 style={{ marginBottom:12 }}>All Food Items</h4>
+                <div className="grid">
                   {filteredFoodItems.length ? filteredFoodItems.map(fi => (
-                    <div key={fi.id} className="shadow-sm" style={{ borderRadius: 12, overflow: "hidden", background: "#fff", cursor: "pointer" }} onClick={() => navigate(fi.restaurantId ? `/restaurant/${fi.restaurantId}` : "/")}>
-                      <div style={{ height: 140, overflow: "hidden" }}>
-                        <img src={fi.imageUrl || "https://source.unsplash.com/400x300/?food"} alt={fi.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <div key={fi.id} className="food-card card-hover" onClick={() => navigate(fi.restaurantId ? `/restaurant/${fi.restaurantId}` : '/')}>
+                      <div className="food-img-wrap">
+                        <img src={fi.imageUrl || 'https://source.unsplash.com/400x300/?food'} alt={fi.name} />
                       </div>
-                      <div style={{ padding: 12 }}>
-                        <div style={{ fontWeight: 700 }}>{fi.name}</div>
-                        <div style={{ marginTop: 6, color: "#2a9d8f", fontWeight: 700 }}>₹{fi.price}</div>
-                        <div style={{ color: "#666", marginTop: 8, fontSize: 13 }}>{fi.description?.slice(0, 80)}</div>
+                      <div className="food-body">
+                        <div className="food-title">{fi.name}</div>
+                        <div className="food-meta">
+                          <div className="food-price">₹{fi.price}</div>
+                          <div className="food-rating">{fi.rating ?? '4.2'} ★</div>
+                        </div>
+                        <div className="food-desc">{fi.description?.slice(0,80)}</div>
                       </div>
                     </div>
                   )) : <p className="text-muted">No food items found.</p>}
@@ -391,23 +424,19 @@ export default function Home() {
               </>
             )}
 
-            {activeTab === "restaurants" && (
+            {activeTab === 'restaurants' && (
               <>
-                <h4 style={{ marginBottom: 12, fontWeight: 700 }}>All Restaurants</h4>
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-                  gap: 16
-                }}>
+                <h4 style={{ marginBottom:12 }}>All Restaurants</h4>
+                <div className="grid-res">
                   {filteredRestaurants.length ? filteredRestaurants.map(r => (
-                    <div key={r.id} onClick={() => navigate(`/restaurant/${r.id}`)} style={{ borderRadius: 12, overflow: "hidden", background: "#fff", boxShadow: "0 8px 20px rgba(0,0,0,0.04)", cursor: "pointer" }}>
-                      <div style={{ height: 180, overflow: "hidden" }}>
-                        <img src={r.imageUrl || "https://source.unsplash.com/800x600/?restaurant"} alt={r.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <div key={r.id} className="res-card card-hover" onClick={() => navigate(`/restaurant/${r.id}`)}>
+                      <div className="res-img">
+                        <img src={r.imageUrl || 'https://source.unsplash.com/800x600/?restaurant'} alt={r.name} />
                       </div>
-                      <div style={{ padding: 12 }}>
-                        <div style={{ fontWeight: 800 }}>{r.name}</div>
-                        <div style={{ color: "#666", marginTop: 6 }}>{r.cuisine || "Multi-cuisine"} • {r.priceLevel ? `₹${r.priceLevel} for one` : "Price N/A"}</div>
-                        <div style={{ marginTop: 8, color: "#777" }}>{r.shortDesc || (r.about && r.about.slice(0, 100))}</div>
+                      <div className="res-body">
+                        <div className="res-name">{r.name}</div>
+                        <div className="res-sub">{r.cuisine || 'Multi-cuisine'} • {r.priceLevel ? `₹${r.priceLevel} for one` : 'Price N/A'}</div>
+                        <div style={{ marginTop:8, color:'var(--muted)' }}>{r.shortDesc || (r.about && r.about.slice(0,100))}</div>
                       </div>
                     </div>
                   )) : <p className="text-muted">No restaurants found.</p>}
@@ -418,53 +447,31 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Profile Drawer (right) */}
-      <div style={{
-        position: "fixed",
-        top: 0,
-        right: showProfile ? 0 : -400,
-        width: 360,
-        height: "100vh",
-        background: "#fff",
-        zIndex: 1500,
-        boxShadow: "-8px 0 30px rgba(0,0,0,0.12)",
-        transition: "right 220ms ease"
-      }}>
-        <div style={{ padding: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h5 style={{ margin: 0 }}>My Profile</h5>
-            <button className="btn btn-sm btn-outline-secondary" onClick={toggleProfileDrawer}>Close</button>
-          </div>
+      {/* Profile Drawer */}
+      <div className="profile-drawer" aria-hidden={!showProfile}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h5 style={{ margin: 0 }}>My Profile</h5>
+          <button className="btn btn-sm btn-outline-secondary" onClick={toggleProfileDrawer}>Close</button>
+        </div>
 
-          <div style={{ marginTop: 18, textAlign: "center" }}>
-            <img src={(userData && (userData.profileUrl || userData.avatar)) || FALLBACK_AVATAR} alt="user" style={{ width: 110, height: 110, borderRadius: 18, objectFit: "cover" }} />
-            <h5 style={{ marginTop: 12 }}>{userData?.name || "Guest User"}</h5>
-            <div style={{ color: "#666" }}>{userData?.email || userData?.phone || "No contact info"}</div>
-          </div>
+        <div style={{ marginTop:18, textAlign:'center' }}>
+          <img src={(userData && (userData.profileUrl || userData.avatar)) || FALLBACK_AVATAR} alt="user" />
+          <h5 style={{ marginTop:12 }}>{userData?.name || 'Guest User'}</h5>
+          <div style={{ color:'var(--muted)' }}>{userData?.email || userData?.phone || 'No contact info'}</div>
+        </div>
 
-          <hr style={{ margin: "18px 0" }} />
+        <hr style={{ margin: '18px 0' }} />
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <button className="btn btn-outline-primary" onClick={() => navigate("/profile")}>Edit Profile</button>
-            <button className="btn btn-outline-secondary" onClick={() => navigate("/orders")}>My Orders</button>
-            <button className="btn btn-outline-secondary" onClick={() => navigate("/favorites")}>Favorites</button>
-            <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
-          </div>
+        <div className="profile-actions">
+          <button className="btn btn-outline-primary" onClick={() => navigate('/profile')}><PencilSquare style={{ marginRight:8 }} /> Edit Profile</button>
+          <button className="btn btn-outline-secondary" onClick={() => navigate('/orders')}>My Orders</button>
+          <button className="btn btn-outline-secondary" onClick={() => navigate('/favorites')}>Favorites</button>
+          <button className="btn btn-danger" onClick={handleLogout}>Logout</button>
         </div>
       </div>
 
       {/* Backdrop for profile drawer */}
-      {showProfile && (
-        <div onClick={toggleProfileDrawer} style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: "rgba(0,0,0,0.28)",
-          zIndex: 1400
-        }} />
-      )}
+      {showProfile && <div className="backdrop" onClick={toggleProfileDrawer} />}
     </div>
   );
 }
