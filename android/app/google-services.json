@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "819418201781",
+    "project_id": "my-food-app-cd514",
+    "storage_bucket": "my-food-app-cd514.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:819418201781:android:4cfc27f9fec9c603dfc8fc",
+        "android_client_info": {
+          "package_name": "com.example.my_flutter_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7Qpq-TZmtcCXdsf2y1_IAFqhbtCcvMf0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
